@@ -8,5 +8,5 @@ binding = "ASSETS"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "farmforge"
+database_name = "db01"
 database_id = "00000000-0000-0000-0000-000000000000"
