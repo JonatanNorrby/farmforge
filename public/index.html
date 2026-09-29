@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Farmforge</title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <main class="app-shell">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">Farm automation prototype</p>
+                <h1>Farmforge</h1>
+            </div>
+            <button id="logout-button" class="button button-secondary hidden" type="button">Log out</button>
+        </header>
+
+        <section id="auth-view" class="panel auth-panel">
+            <h2>Enter your farm</h2>
+            <p>Create a simple account or log in to continue your persistent save.</p>
+
+            <form id="auth-form" class="auth-form">
+                <label>
+                    Username
+                    <input id="username-input" name="username" autocomplete="username" minlength="3" maxlength="32" required>
+                </label>
+                <label>
+                    Password
+                    <input id="password-input" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="128" required>
+                </label>
+                <div class="button-row">
+                    <button class="button" type="submit">Log in</button>
+                    <button id="register-button" class="button button-secondary" type="button">Create account</button>
+                </div>
+            </form>
+
+            <p id="auth-message" class="message" aria-live="polite"></p>
+        </section>
+
+        <section id="game-view" class="hidden">
+            <div class="status-grid">
+                <div class="stat panel">
+                    <span class="stat-label">Money</span>
+                    <strong id="money-value">$0</strong>
+                </div>
+                <div class="stat panel">
+                    <span class="stat-label">Wheat stored</span>
+                    <strong id="wheat-value">0</strong>
+                </div>
+                <div class="stat panel">
+                    <span class="stat-label">Automation</span>
+                    <strong id="automation-value">Manual</strong>
+                </div>
+            </div>
+
+            <div class="game-layout">
+                <section class="panel farm-panel">
+                    <div class="section-heading">
+                        <div>
+                            <p class="eyebrow">8 × 8 field</p>
+                            <h2>Farm</h2>
+                        </div>
+                        <p class="hint">Click empty soil to plant wheat. Click ripe wheat to harvest.</p>
+                    </div>
+                    <div id="farm-grid" class="farm-grid" aria-label="Farm grid"></div>
+                </section>
+
+                <aside class="sidebar">
+                    <section class="panel">
+                        <h2>Storage</h2>
+                        <p>Raw crops can be sold now. Processing chains come later.</p>
+                        <button id="sell-wheat-button" class="button full-width" type="button">Sell all wheat</button>
+                    </section>
+
+                    <section class="panel">
+                        <p class="eyebrow">First automation</p>
+                        <h2>Harvester</h2>
+                        <p>Automatically harvests every mature crop. You still plant the next crop yourself.</p>
+                        <button id="buy-harvester-button" class="button full-width" type="button">Buy Harvester</button>
+                    </section>
+
+                    <section class="panel">
+                        <h2>Save</h2>
+                        <p id="save-status" class="message">Progress saves automatically.</p>
+                        <button id="save-button" class="button button-secondary full-width" type="button">Save now</button>
+                    </section>
+                </aside>
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="/js/main.js"></script>
+</body>
+</html>
