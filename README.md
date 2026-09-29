@@ -32,6 +32,7 @@ The first playable slice focuses on one complete loop:
     api.js
     /data
       crops.js
+      upgrades.js
 
 /src
   worker.js
@@ -44,10 +45,13 @@ The first playable slice focuses on one complete loop:
 /schema
   schema.sql
 
+/tests
+  game.test.mjs
+
 wrangler.toml
 ```
 
-Client gameplay is separated from rendering and input. Content such as crops is data-driven. Authentication, persistence, and database access remain server-side.
+Client gameplay is separated from rendering and input. Content such as crops and unlocks is data-driven. Authentication, persistence, and database access remain server-side.
 
 ## Cloudflare setup
 
@@ -74,13 +78,21 @@ npx wrangler d1 execute farmforge --local --file=./schema/schema.sql
 4. Start local development:
 
 ```bash
-npx wrangler dev
+npm run dev
 ```
 
 5. Deploy:
 
 ```bash
-npx wrangler deploy
+npm run deploy
+```
+
+## Development checks
+
+The core simulation has dependency-free tests using Node's built-in test runner:
+
+```bash
+npm test
 ```
 
 ## Saves
@@ -102,10 +114,10 @@ The initial save format intentionally stays small and flexible:
 
 ## Authentication
 
-Accounts use username + password. Passwords are salted and hashed server-side with PBKDF2-SHA256. Successful authentication creates a random session token stored in a Secure, HTTP-only, SameSite cookie. Only a SHA-256 hash of the session token is stored in D1.
+Accounts use username + password. Passwords are salted and hashed server-side with PBKDF2-SHA256. Successful authentication creates a random session token stored in a Secure, HTTP-only, SameSite cookie when served over HTTPS. Only a SHA-256 hash of the session token is stored in D1.
 
 ## Adding game content
 
-Add crops to `public/js/data/crops.js`. Core farming logic reads crop properties from that configuration rather than containing wheat-specific growth logic.
+Add crops to `public/js/data/crops.js` and unlocks to `public/js/data/upgrades.js`. Core gameplay reads values from these definitions instead of repeating crop prices, growth times, or unlock costs throughout the code.
 
 Keep additions straightforward: add configuration first, then only extend core systems when the new mechanic actually requires it.
