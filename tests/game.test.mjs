@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { createInitialState, Game } from "../public/js/game.js";
+import { createInitialState, Game, FARM_TILE_COUNT } from "../public/js/game.js";
 
 test("manual wheat loop plants, grows, harvests and sells", () => {
     const game = new Game(createInitialState(1_000));
@@ -43,4 +43,19 @@ test("an unaffordable unlock is not purchased", () => {
 
     assert.equal(game.buyUnlock("harvester"), false);
     assert.equal(game.hasUnlock("harvester"), false);
+});
+
+test("existing 2D farm saves retain all plots and automation in the 3D release", () => {
+    const original = createInitialState(1_000);
+    original.money = 82;
+    original.inventory.wheat = 7;
+    original.farm[6] = { cropId: "wheat", plantedAt: 1_000 };
+    original.unlocks = ["harvester"];
+
+    const game = new Game(JSON.parse(JSON.stringify(original)));
+    assert.equal(game.state.farm.length, FARM_TILE_COUNT);
+    assert.deepEqual(game.state.farm[6], original.farm[6]);
+    assert.equal(game.state.inventory.wheat, 7);
+    assert.equal(game.hasUnlock("harvester"), true);
+    assert.equal(game.state.money, 82);
 });
