@@ -1,26 +1,11 @@
-import schemaSql from "../schema/schema.sql";
 import { login, logout, register, json } from "./api/auth.js";
 import { loadSave, saveGame } from "./api/save.js";
-
-let schemaReadyPromise = null;
-
-function ensureSchema(env) {
-    if (!schemaReadyPromise) {
-        schemaReadyPromise = env.DB.exec(schemaSql);
-    }
-
-    return schemaReadyPromise;
-}
 
 export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
         try {
-            if (url.pathname.startsWith("/api/")) {
-                await ensureSchema(env);
-            }
-
             if (url.pathname === "/api/register" && request.method === "POST") {
                 return register(request, env);
             }
