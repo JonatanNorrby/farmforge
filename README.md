@@ -55,35 +55,35 @@ Client gameplay is separated from rendering and input. Content such as crops and
 
 ## Cloudflare setup
 
-1. Create a D1 database:
+The configured D1 database is `db01`, bound to the Worker as `DB` in `wrangler.toml`. It already has its database ID in the configuration.
+
+### Deploy through GitHub Actions
+
+Add these two **GitHub Actions repository secrets** under Settings → Secrets and variables → Actions:
+
+- `CLOUDFLARE_API_TOKEN`: a scoped Cloudflare token with permission to deploy this Worker and access D1.
+- `CLOUDFLARE_ACCOUNT_ID`: the Cloudflare account ID (not the D1 database ID).
+
+The `.github/workflows/deploy.yml` workflow runs on pushes to `main` or manually through Actions → Deploy Farmforge → Run workflow. It runs the tests, applies `schema/schema.sql` remotely to `db01`, then deploys the Worker. Credentials must be stored as GitHub secrets, not committed to the repository.
+
+### Local development
+
+Initialize your local D1 database:
 
 ```bash
-npx wrangler d1 create farmforge
+npx wrangler d1 execute db01 --local --file=./schema/schema.sql
 ```
 
-2. Copy the returned database ID into `wrangler.toml`.
-
-3. Apply the schema:
-
-```bash
-npx wrangler d1 execute farmforge --file=./schema/schema.sql
-```
-
-For a local D1 database during development:
-
-```bash
-npx wrangler d1 execute farmforge --local --file=./schema/schema.sql
-```
-
-4. Start local development:
+Run the Worker:
 
 ```bash
 npm run dev
 ```
 
-5. Deploy:
+To deploy manually after authenticating Wrangler:
 
 ```bash
+npx wrangler d1 execute db01 --remote --file=./schema/schema.sql --yes
 npm run deploy
 ```
 
