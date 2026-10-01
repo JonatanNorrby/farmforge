@@ -22,8 +22,8 @@ jobs:
         run: npm run build
       - name: Test simulation
         run: npm test
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Check installed Chrome
+        run: google-chrome --version
       - name: Prepare local D1
         run: npx --yes wrangler@4 d1 execute db01 --local --file=./schema/schema.sql --yes
       - name: Run browser-level 3D smoke test
