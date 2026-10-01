@@ -49,3 +49,17 @@ jobs:
         env:
           FARMFORGE_URL: https://farmforge.jonatanfsnorrby.workers.dev
         run: node tests/smoke.mjs
+
+      - name: Remove smoke-test account
+        if: always()
+        shell: bash
+        run: |
+          if [[ -f .smoke-username ]]; then
+            username="$(cat .smoke-username)"
+            if [[ "$username" =~ ^smoke_[a-f0-9]{14}$ ]]; then
+              npx --yes wrangler@4 d1 execute db01 --remote --command "DELETE FROM users WHERE username = '$username';" --yes
+            else
+              echo "::error::Smoke-test username format is invalid."
+              exit 1
+            fi
+          fi
