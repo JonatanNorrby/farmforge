@@ -44,3 +44,8 @@ jobs:
 
       - name: Deploy Worker
         run: npx --yes wrangler@4 deploy
+
+      - name: Check live deployment
+        env:
+          FARMFORGE_URL: https://farmforge.jonatanfsnorrby.workers.dev
+        run: node tests/smoke.mjs
