@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { chromium } from "playwright";
 
 const browser = await chromium.launch({
+    channel: "chrome",
     headless: true,
     args: [
         "--use-gl=angle",
