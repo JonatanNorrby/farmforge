@@ -1,0 +1,50 @@
+name: Validate Farmforge
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Build 3D client
+        run: npm run build
+      - name: Test simulation
+        run: npm test
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Prepare local D1
+        run: npx --yes wrangler@4 d1 execute db01 --local --file=./schema/schema.sql --yes
+      - name: Run browser-level 3D smoke test
+        shell: bash
+        run: |
+          npx --yes wrangler@4 dev --local --port 8787 > /tmp/farmforge-dev.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for attempt in $(seq 1 40); do
+            if curl --fail --silent http://127.0.0.1:8787/ >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          if [[ "$ready" != 1 ]]; then
+            cat /tmp/farmforge-dev.log
+            exit 1
+          fi
+          if ! npm run test:browser; then
+            cat /tmp/farmforge-dev.log
+            exit 1
+          fi
