@@ -72,7 +72,9 @@ assert.ok(secondCookie?.startsWith("farmforge_session="), "Login did not set a s
 const loaded = await fetch(new URL("/api/save", baseUrl), {
     headers: { Cookie: secondCookie }
 });
-assert.equal(loaded.status, 200, `Could not reload game save: ${await loaded.text()}`);
+if (loaded.status !== 200) {
+    throw new Error(`Could not reload game save (${loaded.status}): ${await loaded.text()}`);
+}
 const { save } = await loaded.json();
 assert.equal(save.money, 34);
 assert.equal(save.inventory.wheat, 2);
