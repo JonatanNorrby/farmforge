@@ -8,7 +8,8 @@ import {
 
 const SESSION_COOKIE = "farmforge_session";
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
-const PBKDF2_ITERATIONS = 210_000;
+// Cloudflare Workers WebCrypto accepts at most 100,000 PBKDF2 iterations per call.
+const PBKDF2_ITERATIONS = 100_000;
 
 function json(data, status = 200, headers = {}) {
     return new Response(JSON.stringify(data), {
@@ -177,11 +178,11 @@ export async function register(request, env) {
         return json({ error: "That username is already taken." }, 409);
     }
 
-    const salt = crypto.getRandomValues(new Uint8Array(16));
-    const passwordHash = await hashPassword(credentials.password, salt);
-    const createdAt = Date.now();
-
     try {
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const passwordHash = await hashPassword(credentials.password, salt);
+        const createdAt = Date.now();
+
         const userId = await createUser(
             env.DB,
             credentials.username,
