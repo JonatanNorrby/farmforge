@@ -48,7 +48,23 @@ jobs:
       - name: Check live deployment
         env:
           FARMFORGE_URL: https://farmforge.jonatanfsnorrby.workers.dev
-        run: node tests/smoke.mjs
+        shell: bash
+        run: |
+          # Existing edge instances may briefly serve the preceding version.
+          sleep 10
+          npx --yes wrangler@4 tail farmforge --format=pretty --method=POST > /tmp/farmforge-tail.log 2>&1 &
+          tail_pid=$!
+          sleep 3
+          set +e
+          node tests/smoke.mjs
+          smoke_status=$?
+          set -e
+          kill "$tail_pid" 2>/dev/null || true
+          if [[ "$smoke_status" != 0 ]]; then
+            echo "Recent Worker error logs:"
+            tail -n 80 /tmp/farmforge-tail.log
+          fi
+          exit "$smoke_status"
 
       - name: Remove smoke-test account
         if: always()
