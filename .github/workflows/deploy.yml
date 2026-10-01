@@ -16,7 +16,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -27,6 +27,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build Babylon.js client
+        run: npm run build
 
       - name: Test simulation
         run: npm test
@@ -50,7 +56,6 @@ jobs:
           FARMFORGE_URL: https://farmforge.jonatanfsnorrby.workers.dev
         shell: bash
         run: |
-          # Existing edge instances may briefly serve the preceding version.
           sleep 10
           npx --yes wrangler@4 tail farmforge --format=pretty --method=POST > /tmp/farmforge-tail.log 2>&1 &
           tail_pid=$!

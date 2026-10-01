@@ -3,45 +3,47 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Farmforge</title>
+    <title>Farmforge — 3D Farm</title>
     <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
     <main class="app-shell">
         <header class="topbar">
             <div>
-                <p class="eyebrow">Farm automation prototype</p>
-                <h1>Farmforge</h1>
+                <p class="eyebrow">Build a better farm, one machine at a time</p>
+                <h1>Farmforge <span class="title-accent">3D</span></h1>
             </div>
             <button id="logout-button" class="button button-secondary hidden" type="button">Log out</button>
         </header>
 
         <section id="auth-view" class="panel auth-panel">
+            <p class="eyebrow">Welcome back, farmer</p>
             <h2>Enter your farm</h2>
-            <p>Create a simple account or log in to continue your persistent save.</p>
-
+            <p>Create an account or log in to continue your saved farm across devices.</p>
             <form id="auth-form" class="auth-form">
                 <label>
                     Username
-                    <input id="username-input" name="username" autocomplete="username" minlength="3" maxlength="32" required>
+                    <input id="username-input" name="username" autocomplete="username"
+                           minlength="3" maxlength="32" required>
                 </label>
                 <label>
                     Password
-                    <input id="password-input" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="128" required>
+                    <input id="password-input" name="password" type="password"
+                           autocomplete="current-password" minlength="8" maxlength="128" required>
                 </label>
                 <div class="button-row">
                     <button class="button" type="submit">Log in</button>
-                    <button id="register-button" class="button button-secondary" type="button">Create account</button>
+                    <button id="register-button" class="button button-secondary"
+                            type="button">Create account</button>
                 </div>
             </form>
-
             <p id="auth-message" class="message" aria-live="polite"></p>
         </section>
 
         <section id="game-view" class="hidden">
             <div class="status-grid">
                 <div class="stat panel">
-                    <span class="stat-label">Money</span>
+                    <span class="stat-label">Farm balance</span>
                     <strong id="money-value">$0</strong>
                 </div>
                 <div class="stat panel">
@@ -58,38 +60,61 @@
                 <section class="panel farm-panel">
                     <div class="section-heading">
                         <div>
-                            <p class="eyebrow">8 × 8 field</p>
-                            <h2>Farm</h2>
+                            <p class="eyebrow">Your homestead · 64 plots</p>
+                            <h2>Farm overview</h2>
                         </div>
-                        <p class="hint">Click empty soil to plant wheat. Click ripe wheat to harvest.</p>
+                        <button id="reset-camera-button" class="button button-secondary button-small"
+                                type="button">Reset camera</button>
                     </div>
-                    <div id="farm-grid" class="farm-grid" aria-label="Farm grid"></div>
+                    <div class="world-shell">
+                        <canvas id="render-canvas" tabindex="0"
+                                aria-label="Interactive 3D farm; use arrow keys to select plots, Enter to plant or harvest"
+                                aria-describedby="farm-instructions"></canvas>
+                        <div class="world-label">LIVE FARM</div>
+                        <div id="scene-error" class="scene-error hidden" role="alert"></div>
+                        <div class="world-legend" aria-hidden="true">
+                            <span><i class="legend-dot legend-soil"></i>Empty</span>
+                            <span><i class="legend-dot legend-green"></i>Growing</span>
+                            <span><i class="legend-dot legend-gold"></i>Ready</span>
+                        </div>
+                    </div>
+                    <div class="field-help">
+                        <p id="plot-hint" aria-live="polite">Select an empty plot to plant wheat. Select ripe wheat to harvest.</p>
+                        <p id="farm-instructions" class="hint">
+                            Click a plot to interact · Drag to rotate · Scroll to zoom ·
+                            Keyboard: arrows + Enter
+                        </p>
+                    </div>
                 </section>
 
                 <aside class="sidebar">
                     <section class="panel">
+                        <p class="eyebrow">Harvested goods</p>
                         <h2>Storage</h2>
-                        <p>Raw crops can be sold now. Processing chains come later.</p>
-                        <button id="sell-wheat-button" class="button full-width" type="button">Sell all wheat</button>
+                        <p>Sell raw wheat to fund more planting and farm equipment.</p>
+                        <button id="sell-wheat-button" class="button full-width" type="button">
+                            Sell all wheat
+                        </button>
                     </section>
-
                     <section class="panel">
-                        <p class="eyebrow">First automation</p>
+                        <p class="eyebrow">Your first machine</p>
                         <h2>Harvester</h2>
-                        <p>Automatically harvests every mature crop. You still plant the next crop yourself.</p>
-                        <button id="buy-harvester-button" class="button full-width" type="button">Buy Harvester</button>
+                        <p>Automatically collects ripe crops. Your machine appears beside the field after purchase.</p>
+                        <button id="buy-harvester-button" class="button full-width" type="button">
+                            Buy Harvester
+                        </button>
                     </section>
-
                     <section class="panel">
-                        <h2>Save</h2>
-                        <p id="save-status" class="message">Progress saves automatically.</p>
-                        <button id="save-button" class="button button-secondary full-width" type="button">Save now</button>
+                        <p class="eyebrow">Cloudflare D1</p>
+                        <h2>Cloud save</h2>
+                        <p id="save-status" class="message" aria-live="polite">Progress saves automatically.</p>
+                        <button id="save-button" class="button button-secondary full-width"
+                                type="button">Save now</button>
                     </section>
                 </aside>
             </div>
         </section>
     </main>
-
-    <script type="module" src="/js/main.js"></script>
+    <script type="module" src="/build/game.js"></script>
 </body>
 </html>

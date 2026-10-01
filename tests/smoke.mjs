@@ -13,14 +13,14 @@ async function request(path, expectedStatus, expectedText) {
     const response = await fetch(url, { redirect: "follow" });
     const body = await response.text();
 
-    console.log(`${response.status} ${url} (${response.headers.get("content-type") ?? "no content type"})`);
+    console.log(response.status + " " + url + " (" + (response.headers.get("content-type") ?? "no content type") + ")");
 
     assert.equal(response.status, expectedStatus,
-        `Unexpected response for ${path}: ${body.slice(0, 500)}`);
+        "Unexpected response for " + path + ": " + body.slice(0, 500));
 
     if (expectedText) {
         assert.ok(body.includes(expectedText),
-            `Response for ${path} is missing ${JSON.stringify(expectedText)}: ${body.slice(0, 500)}`);
+            "Response for " + path + " is missing " + JSON.stringify(expectedText));
     }
 }
 
@@ -33,19 +33,19 @@ async function postJson(path, data, expectedStatus, cookie = "") {
         },
         body: JSON.stringify(data)
     });
-    const text = await response.text();
-    console.log(`${response.status} POST ${path}`);
+    const body = await response.text();
+    console.log(response.status + " POST " + path);
     assert.equal(response.status, expectedStatus,
-        `Unexpected response for POST ${path}: ${text.slice(0, 500)}`);
-    return { response, json: JSON.parse(text) };
+        "Unexpected response for POST " + path + ": " + body.slice(0, 500));
+    return { response, json: JSON.parse(body) };
 }
 
-await request("/", 200, "Farmforge");
-await request("/js/main.js", 200, "bootstrap()");
-await request("/css/main.css", 200, ".farm-grid");
+await request("/", 200, "id=\"render-canvas\"");
+await request("/build/game.js", 200);
+await request("/css/main.css", 200, ".world-shell");
 await request("/api/save", 401, "Authentication required.");
 
-const username = `smoke_${randomBytes(7).toString("hex")}`;
+const username = "smoke_" + randomBytes(7).toString("hex");
 const password = randomBytes(24).toString("hex");
 writeFileSync(".smoke-username", username);
 
@@ -73,10 +73,10 @@ const loaded = await fetch(new URL("/api/save", baseUrl), {
     headers: { Cookie: secondCookie }
 });
 if (loaded.status !== 200) {
-    throw new Error(`Could not reload game save (${loaded.status}): ${await loaded.text()}`);
+    throw new Error("Could not reload game save (" + loaded.status + "): " + await loaded.text());
 }
 const { save } = await loaded.json();
 assert.equal(save.money, 34);
 assert.equal(save.inventory.wheat, 2);
 
-console.log("Deployed Farmforge smoke checks passed: assets, registration, login and save/load.");
+console.log("Deployed Farmforge smoke checks passed: 3D assets, registration, login and save/load.");

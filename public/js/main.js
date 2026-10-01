@@ -2,6 +2,7 @@ import { api, ApiError, SaveManager } from "./api.js";
 import { Game } from "./game.js";
 import { bindAuthInput, bindGameInput } from "./input.js";
 import { Renderer } from "./renderer.js";
+import { FarmScene } from "./scene3d.js";
 
 const elements = {
     authView: document.querySelector("#auth-view"),
@@ -15,7 +16,10 @@ const elements = {
     moneyValue: document.querySelector("#money-value"),
     wheatValue: document.querySelector("#wheat-value"),
     automationValue: document.querySelector("#automation-value"),
-    farmGrid: document.querySelector("#farm-grid"),
+    renderCanvas: document.querySelector("#render-canvas"),
+    sceneError: document.querySelector("#scene-error"),
+    plotHint: document.querySelector("#plot-hint"),
+    resetCameraButton: document.querySelector("#reset-camera-button"),
     sellWheatButton: document.querySelector("#sell-wheat-button"),
     buyHarvesterButton: document.querySelector("#buy-harvester-button"),
     saveButton: document.querySelector("#save-button"),
@@ -24,6 +28,7 @@ const elements = {
 
 const renderer = new Renderer(elements);
 let game = null;
+let farmScene = null;
 let updateIntervalId = null;
 
 const saveManager = new SaveManager(
@@ -38,29 +43,83 @@ function credentials() {
     };
 }
 
+function renderGame() {
+    if (!game) return;
+    renderer.render(game);
+    farmScene?.render(game);
+}
+
+function onPlotHover(index) {
+    if (!game || index === null) {
+        renderer.setPlotHint("Select an empty plot to plant wheat. Select ripe wheat to harvest.");
+        return;
+    }
+
+    const status = game.getTileStatus(index);
+    const plotNumber = index + 1;
+
+    if (status.state === "empty") {
+        renderer.setPlotHint("Plot " + plotNumber + ": empty soil — click to plant wheat ($1).");
+    } else if (status.state === "ready") {
+        renderer.setPlotHint("Plot " + plotNumber + ": wheat is ready to harvest.");
+    } else {
+        renderer.setPlotHint("Plot " + plotNumber + ": wheat is " + Math.floor(status.progress * 100) + "% grown.");
+    }
+}
+
+function onPlotClick(index) {
+    if (!game) return;
+    const status = game.getTileStatus(index);
+    let changed = false;
+
+    if (status.state === "empty") {
+        changed = game.plant(index, "wheat");
+        if (!changed) renderer.setPlotHint("Not enough money to plant. Sell wheat from storage.");
+    } else if (status.state === "ready") {
+        changed = game.harvest(index);
+    }
+
+    if (changed) {
+        renderGame();
+        onPlotHover(index);
+    }
+}
+
+function createFarmScene() {
+    if (farmScene) {
+        farmScene.resize();
+        return;
+    }
+
+    try {
+        farmScene = new FarmScene(elements.renderCanvas, onPlotClick, onPlotHover);
+        renderer.setSceneError("");
+    } catch (error) {
+        console.error("Unable to initialize 3D farm", error);
+        renderer.setSceneError("3D rendering could not start. Enable WebGL or try a modern browser with hardware acceleration.");
+    }
+}
+
 async function enterGame() {
     const { save } = await api.loadSave();
     game = new Game(save);
 
     renderer.showGame();
     renderer.setSaveStatus("Progress saves automatically.");
-    renderer.render(game);
-
+    createFarmScene();
+    renderGame();
+    window.requestAnimationFrame(() => farmScene?.resize());
     saveManager.start();
 
-    if (updateIntervalId !== null) {
-        window.clearInterval(updateIntervalId);
-    }
-
+    if (updateIntervalId !== null) window.clearInterval(updateIntervalId);
     updateIntervalId = window.setInterval(() => {
         game.update();
-        renderer.render(game);
+        renderGame();
     }, 250);
 }
 
 async function handleAuth(action) {
     const { username, password } = credentials();
-
     renderer.setAuthMessage(action === "register" ? "Creating account..." : "Logging in...");
 
     try {
@@ -75,7 +134,6 @@ async function handleAuth(action) {
 async function logout() {
     await saveManager.save();
     saveManager.stop();
-
     if (updateIntervalId !== null) {
         window.clearInterval(updateIntervalId);
         updateIntervalId = null;
@@ -84,7 +142,7 @@ async function logout() {
     try {
         await api.logout();
     } catch {
-        // The local session is cleared from the UI even if the request fails.
+        // Show the login view even if session cleanup fails on the server.
     }
 
     game = null;
@@ -98,15 +156,14 @@ bindAuthInput(elements, {
 });
 
 bindGameInput(elements, () => game, {
-    changed: () => renderer.render(game),
+    changed: renderGame,
     importantChanged: () => saveManager.save(),
-    save: () => saveManager.save()
+    save: () => saveManager.save(),
+    resetCamera: () => farmScene?.resetCamera()
 });
 
 window.addEventListener("pagehide", () => {
-    if (game) {
-        saveManager.save({ keepalive: true });
-    }
+    if (game) saveManager.save({ keepalive: true });
 });
 
 async function bootstrap() {
@@ -117,7 +174,6 @@ async function bootstrap() {
             renderer.showAuth();
             return;
         }
-
         renderer.showAuth("Could not connect to the game server.", true);
     }
 }
